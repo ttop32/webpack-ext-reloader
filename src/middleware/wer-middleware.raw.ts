@@ -13,10 +13,6 @@
 
   const injectionContext = this || {browser: null};
 
-  (function() {
-    `<%= polyfillSource %>`;
-  })();
-
   const { browser }: any = injectionContext || {};
   const signals: any = JSON.parse('<%= signals %>');
   const config: any = JSON.parse('<%= config %>');
