@@ -10,7 +10,7 @@ const packName = "webpack-ext-reloader";
 module.exports = (env = { analyze: false }) => ({
   mode,
   target: "node",
-  entry: test({ tests: "./specs/index.ts" }) || {
+  entry: {
     [packName]: "./src/index.ts",
     [`${packName}-cli`]: "./client/index.ts",
   },
