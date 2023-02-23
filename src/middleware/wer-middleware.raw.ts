@@ -11,9 +11,9 @@
     window = _window
   }
 
-  const injectionContext = this || {browser: null};
+  const injectionContext = this || {chrome: null};
 
-  const { browser }: any = injectionContext || {};
+  const { chrome }: any = injectionContext || {};
   const signals: any = JSON.parse('<%= signals %>');
   const config: any = JSON.parse('<%= config %>');
 
@@ -28,7 +28,7 @@
   } = signals;
   const { RECONNECT_INTERVAL, SOCKET_ERR_CODE_REF } = config;
 
-  const { extension, runtime, tabs } = browser;
+  const { runtime, tabs } = chrome;
   const manifest = runtime.getManifest();
 
   // =============================== Helper functions ======================================= //
