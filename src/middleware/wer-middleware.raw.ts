@@ -5,15 +5,15 @@
 /*  This will be converted into a lodash templ., any  */
 /*  external argument must be provided using it       */
 /* -------------------------------------------------- */
-(function(window) {
+(function(_window) {
+  let window: any
+  if (_window.document !== undefined) {
+    window = _window
+  }
 
-  const injectionContext = this || window || {browser: null};
+  const injectionContext = this || {chrome: null};
 
-  (function() {
-    `<%= polyfillSource %>`;
-  })();
-
-  const { browser }: any = injectionContext || {};
+  const { chrome }: any = injectionContext || {};
   const signals: any = JSON.parse('<%= signals %>');
   const config: any = JSON.parse('<%= config %>');
 
@@ -28,7 +28,7 @@
   } = signals;
   const { RECONNECT_INTERVAL, SOCKET_ERR_CODE_REF } = config;
 
-  const { extension, runtime, tabs } = browser;
+  const { runtime, tabs } = chrome;
   const manifest = runtime.getManifest();
 
   // =============================== Helper functions ======================================= //
@@ -39,13 +39,14 @@
 
   // ========================== Called only on content scripts ============================== //
   function contentScriptWorker() {
+    // console.log('contentScriptWorker')
     runtime.sendMessage({ type: SIGN_CONNECT }).then(msg => console.info(msg));
 
     runtime.onMessage.addListener(({ type, payload }: { type: string; payload: any }) => {
       switch (type) {
         case SIGN_RELOAD:
           logger("Detected Changes. Reloading...");
-          reloadPage && window.location.reload();
+          reloadPage && window?.location.reload();
           break;
         case SIGN_LOG:
           console.info(payload);
@@ -58,6 +59,7 @@
 
   // ======================== Called only on background scripts ============================= //
   function backgroundWorker(socket: WebSocket) {
+    // console.log('backgroundWorker')
     runtime.onMessage.addListener((action: { type: string; payload: any }, sender) => {
       if (action.type === SIGN_CONNECT) {
         return Promise.resolve(formatter("Connected to Web Extension Hot Reloader"));
@@ -114,6 +116,7 @@
 
   // ======================== Called only on extension pages that are not the background ============================= //
   function extensionPageWorker() {
+    // console.log('extensionPageWorker')
     runtime.sendMessage({ type: SIGN_CONNECT }).then(msg => console.info(msg));
 
     runtime.onMessage.addListener(({ type, payload }: { type: string; payload: any }) => {
@@ -122,7 +125,7 @@
           logger("Detected Changes. Reloading...");
           // Always reload extension pages in the foreground when they change.
           // This option doesn't make sense otherwise
-          window.location.reload();
+          window?.location.reload();
           break;
 
         case SIGN_LOG:
@@ -137,9 +140,9 @@
 
   // ======================= Bootstraps the middleware =========================== //
   runtime.reload
-    ? extension.getBackgroundPage() === window ? backgroundWorker(new WebSocket(wsHost)) : extensionPageWorker()
+    ? !window ? backgroundWorker(new WebSocket(wsHost)) : extensionPageWorker()
     : contentScriptWorker();
-})(window);
+})(this);
 
 /* ----------------------------------------------- */
 /* End of Webpack Hot Extension Middleware  */
