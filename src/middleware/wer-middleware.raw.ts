@@ -42,6 +42,10 @@
     // console.log('contentScriptWorker')
     runtime.sendMessage({ type: SIGN_CONNECT }).then(msg => console.info(msg));
 
+    if (runtime.lastError) {
+      console.warn(`Whoops..chrome.runtime.lastError: ${  chrome.runtime.lastError.message}`);
+    }
+
     runtime.onMessage.addListener(({ type, payload }: { type: string; payload: any }, sender, sendResponse) => {
       console.log('contentScriptWorker.onMessage', type, payload)
       switch (type) {
@@ -60,6 +64,10 @@
       }
       sendResponse('ok')
     });
+
+    if (runtime.lastError) {
+      console.warn(`Whoops..chrome.runtime.lastError: ${  chrome.runtime.lastError.message}`);
+    }
   }
 
   // ======================== Called only on background scripts ============================= //
