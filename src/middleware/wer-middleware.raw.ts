@@ -26,7 +26,7 @@
     SIGN_LOG,
     SIGN_CONNECT,
   } = signals;
-  const { RECONNECT_INTERVAL, SOCKET_ERR_CODE_REF } = config;
+  const { RECONNECT_INTERVAL, RECONNECT_MAX_RETRY, SOCKET_ERR_CODE_REF } = config;
 
   const { runtime, tabs } = chrome;
   const manifest = runtime.getManifest();
@@ -112,7 +112,14 @@
         "warn",
       );
 
+      let retryCount = 0;
+
       const intId = setInterval(() => {
+        retryCount++
+        if (retryCount > RECONNECT_MAX_RETRY) {
+          clearInterval(intId);
+          logger('Max retry count reached. Stopping reconnection attempts')
+        }
         logger("Attempting to reconnect (tip: Check if Webpack is running)");
         const ws = new WebSocket(wsHost);
         ws.onerror = () => logger(`Error trying to re-connect. Reattempting in ${RECONNECT_INTERVAL / 1000}s`, "warn");
