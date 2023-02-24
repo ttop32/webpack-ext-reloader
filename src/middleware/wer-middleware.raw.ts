@@ -42,11 +42,15 @@
     // console.log('contentScriptWorker')
     runtime.sendMessage({ type: SIGN_CONNECT }).then(msg => console.info(msg));
 
-    runtime.onMessage.addListener(({ type, payload }: { type: string; payload: any }) => {
+    runtime.onMessage.addListener(({ type, payload }: { type: string; payload: any }, sender, sendResponse) => {
+      console.log('contentScriptWorker.onMessage', type, payload)
       switch (type) {
         case SIGN_RELOAD:
           logger("Detected Changes. Reloading...");
-          reloadPage && window?.location.reload();
+          sendResponse('ok, reload')
+          setTimeout(() => {
+            reloadPage && window?.location.reload();
+          }, 100)
           break;
         case SIGN_LOG:
           console.info(payload);
@@ -54,17 +58,20 @@
         default:
           break;
       }
+      sendResponse('ok')
     });
   }
 
   // ======================== Called only on background scripts ============================= //
   function backgroundWorker() {
     // console.log('backgroundWorker')
-    runtime.onMessage.addListener((action: { type: string; payload: any }, sender) => {
+    runtime.onMessage.addListener((action: { type: string; payload: any }, sender, sendResponse) => {
       if (action.type === SIGN_CONNECT) {
-        return Promise.resolve(formatter("Connected to Web Extension Hot Reloader"));
+        console.log('on SIG_CONNECT')
+        sendResponse(formatter("Connected to Web Extension Hot Reloader"));
+      } else {
+        sendResponse('ok');
       }
-      return true;
     });
 
     let socket: WebSocket
@@ -135,10 +142,11 @@
     // console.log('extensionPageWorker')
     runtime.sendMessage({ type: SIGN_CONNECT }).then(msg => console.info(msg));
 
-    runtime.onMessage.addListener(({ type, payload }: { type: string; payload: any }) => {
+    runtime.onMessage.addListener(({ type, payload }: { type: string; payload: any }, sender, sendResponse) => {
       switch (type) {
         case SIGN_CHANGE:
           logger("Detected Changes. Reloading...");
+          sendResponse('ok, reload')
           // Always reload extension pages in the foreground when they change.
           // This option doesn't make sense otherwise
           window?.location.reload();
@@ -151,6 +159,7 @@
         default:
           break;
       }
+      sendResponse('ok')
     });
   }
 
