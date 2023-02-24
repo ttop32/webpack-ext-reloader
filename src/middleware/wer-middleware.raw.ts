@@ -74,11 +74,9 @@
       }
     });
 
-    let socket: WebSocket
-    try {
-      socket = new WebSocket(wsHost)
-    } catch (err) {
-      throw new Error(`webpack-ext-reloader: Could not create WebSocket in background worker: ${err}`)
+    const socket = new WebSocket(wsHost)
+    socket.onerror = (event) => {
+      logger(`webpack-ext-reloader: Could not create WebSocket in background worker: ${event}`, 'warn')
     }
 
     socket.addEventListener("message", ({ data }: MessageEvent) => {
@@ -116,16 +114,7 @@
 
       const intId = setInterval(() => {
         logger("Attempting to reconnect (tip: Check if Webpack is running)");
-        let ws: WebSocket
-        try {
-          ws = new WebSocket(wsHost);
-        } catch (err) {
-          // Possible errors:
-          // WebSocket connection to 'ws://localhost:9090/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
-          // Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.
-          logger(`Create WebSocket error, skip: ${err}`, 'warn')
-          return
-        }
+        const ws = new WebSocket(wsHost);
         ws.onerror = () => logger(`Error trying to re-connect. Reattempting in ${RECONNECT_INTERVAL / 1000}s`, "warn");
         ws.addEventListener("open", () => {
           clearInterval(intId);
