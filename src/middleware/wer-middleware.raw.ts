@@ -58,7 +58,7 @@
   }
 
   // ======================== Called only on background scripts ============================= //
-  function backgroundWorker(socket: WebSocket) {
+  function backgroundWorker() {
     // console.log('backgroundWorker')
     runtime.onMessage.addListener((action: { type: string; payload: any }, sender) => {
       if (action.type === SIGN_CONNECT) {
@@ -66,6 +66,13 @@
       }
       return true;
     });
+
+    let socket: WebSocket
+    try {
+      socket = new WebSocket(wsHost)
+    } catch (err) {
+      throw new Error(`webpack-ext-reloader: Could not create WebSocket in background worker: ${err}`)
+    }
 
     socket.addEventListener("message", ({ data }: MessageEvent) => {
       const { type, payload } = JSON.parse(data);
@@ -102,7 +109,16 @@
 
       const intId = setInterval(() => {
         logger("Attempting to reconnect (tip: Check if Webpack is running)");
-        const ws = new WebSocket(wsHost);
+        let ws: WebSocket
+        try {
+          ws = new WebSocket(wsHost);
+        } catch (err) {
+          // Possible errors:
+          // WebSocket connection to 'ws://localhost:9090/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED
+          // Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.
+          logger(`Create WebSocket error, skip: ${err}`, 'warn')
+          return
+        }
         ws.onerror = () => logger(`Error trying to re-connect. Reattempting in ${RECONNECT_INTERVAL / 1000}s`, "warn");
         ws.addEventListener("open", () => {
           clearInterval(intId);
@@ -140,7 +156,7 @@
 
   // ======================= Bootstraps the middleware =========================== //
   runtime.reload
-    ? !window ? backgroundWorker(new WebSocket(wsHost)) : extensionPageWorker()
+    ? !window ? backgroundWorker() : extensionPageWorker()
     : contentScriptWorker();
 })(this);
 
