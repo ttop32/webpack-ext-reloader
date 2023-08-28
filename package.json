@@ -21,7 +21,8 @@
     "lint": "eslint \"{src,client,typings,specs}/**/*.ts\" --fix --format codeframe",
     "format": "prettier --write \"{src,client,typings,specs}/**/*.ts\"",
     "lint:files": "eslint --fix --format codeframe",
-    "format:files": "prettier --write"
+    "format:files": "prettier --write",
+    "prepare": "cross-env NODE_ENV=production webpack"
   },
   "author": "Rubens Pinheiro Gonçalves Cavalcante",
   "license": "MIT",
@@ -43,7 +44,6 @@
     "@types/webpack-sources": "^3.2.0",
     "clean-webpack-plugin": "^4.0.0",
     "colors": "^1.4.0",
-    "cross-env": "^7.0.3",
     "lodash": "^4.17.21",
     "minimist": "^1.2.6",
     "webpack-sources": "^3.2.3",
@@ -75,6 +75,7 @@
     "babel-loader": "8.3.0",
     "chai": "4.3.7",
     "copy-webpack-plugin": "10.2.4",
+    "cross-env": "^7.0.3",
     "css-loader": "6.7.1",
     "eslint": "8.18.0",
     "eslint-config-airbnb": "19.0.4",
